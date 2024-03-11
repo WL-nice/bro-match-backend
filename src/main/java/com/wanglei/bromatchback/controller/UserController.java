@@ -12,6 +12,7 @@ import com.wanglei.bromatchback.service.UserService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -101,7 +102,7 @@ public class UserController {
     @GetMapping("/search")
     public BaseResponse<List<User>> searchUsers(String username, HttpServletRequest request) {
         //仅管理员可查询
-        if (!isAdmin(request)) {
+        if (!userService.isAdmin(request)) {
             throw new BusinessException(ErrorCode.NO_AUTH);
         }
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
@@ -114,13 +115,32 @@ public class UserController {
         return ResultUtils.success(list);
     }
 
+    @GetMapping("/search/tags")
+    public BaseResponse<List<User>> searchUserTags(List<String> tags){
+        if(CollectionUtils.isEmpty(tags)){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        List<User> userList = userService.searchUserByTags(tags);
+        return ResultUtils.success(userList);
+    }
+
+    @PostMapping("/update")
+    public BaseResponse<Integer> updateUser(@RequestBody User user,HttpServletRequest request){
+        if(user == null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        Integer result = userService.updateUser(user,loginUser);
+        return ResultUtils.success(result);
+    }
+
     /**
      * 用户删除
      */
     @PostMapping("/delete")
-    public BaseResponse<Boolean> deleteUser(@RequestBody long id, HttpServletRequest request) {
+    public BaseResponse<Boolean> deleteUser(@RequestParam("id") long id, HttpServletRequest request) {
         //仅管理员可查询
-        if (!isAdmin(request)) {
+        if (!userService.isAdmin(request)) {
             throw new BusinessException(ErrorCode.NO_AUTH);
         }
         if (id <= 0) {
@@ -130,15 +150,5 @@ public class UserController {
         return ResultUtils.success(result);
     }
 
-    /**
-     * 判断是否为管理员
-     *
-     * @return
-     */
 
-    private boolean isAdmin(HttpServletRequest request) {
-        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
-        User user = (User) userObj;
-        return user != null && user.getUserRole() == ADMIN_ROLE;
-    }
 }
