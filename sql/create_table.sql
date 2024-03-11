@@ -1,3 +1,4 @@
+use `bro-match`;
 create table tag
 (
     id           bigint auto_increment comment 'id' primary key,

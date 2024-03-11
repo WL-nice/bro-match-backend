@@ -6,11 +6,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 @MapperScan("com.wanglei.bromatchback.mapper")//扫描mapper
-public class UserCenterBackApplication {
+public class BroMatch {
 
 	public static void main(String[] args) {
 
-		SpringApplication.run(UserCenterBackApplication.class, args);
+		SpringApplication.run(BroMatch.class, args);
 	}
 
 }
