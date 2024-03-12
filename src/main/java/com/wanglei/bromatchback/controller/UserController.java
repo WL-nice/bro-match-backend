@@ -1,6 +1,8 @@
 package com.wanglei.bromatchback.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wanglei.bromatchback.commmon.BaseResponse;
 import com.wanglei.bromatchback.commmon.ErrorCode;
 import com.wanglei.bromatchback.commmon.ResultUtils;
@@ -99,21 +101,21 @@ public class UserController {
     /**
      * 管理员查询
      */
-    @GetMapping("/search")
-    public BaseResponse<List<User>> searchUsers(String username, HttpServletRequest request) {
-        //仅管理员可查询
-        if (!userService.isAdmin(request)) {
-            throw new BusinessException(ErrorCode.NO_AUTH);
-        }
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        if (StringUtils.isNotBlank(username)) {
-            queryWrapper.like("username", username);
-        }
-        List<User> userList = userService.list(queryWrapper);
-        List<User> list = userList.stream().map(user -> userService.getSafetUser(user)).collect(Collectors.toList());
-
-        return ResultUtils.success(list);
-    }
+//    @GetMapping("/search")
+//    public BaseResponse<List<User>> searchUsers(String username, HttpServletRequest request) {
+//        //仅管理员可查询
+//        if (!userService.isAdmin(request)) {
+//            throw new BusinessException(ErrorCode.NO_AUTH);
+//        }
+//        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+//        if (StringUtils.isNotBlank(username)) {
+//            queryWrapper.like("username", username);
+//        }
+//        List<User> userList = userService.list(queryWrapper);
+//        List<User> list = userList.stream().map(user -> userService.getSafetUser(user)).collect(Collectors.toList());
+//
+//        return ResultUtils.success(list);
+//    }
 
     @GetMapping("/search/tags")
     public BaseResponse<List<User>> searchUserTags(List<String> tags){
@@ -121,6 +123,18 @@ public class UserController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         List<User> userList = userService.searchUserByTags(tags);
+        return ResultUtils.success(userList);
+    }
+
+    /**
+     * 主页推荐
+     * @param pageSize 每页数据量
+     * @param pageNum  当前页数
+     */
+    @GetMapping("/recommend")
+    public BaseResponse<Page<User>> userRecommend(long pageSize,long pageNum,HttpServletRequest request){
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        Page<User> userList = userService.page(new Page<>(pageNum,pageSize),queryWrapper);
         return ResultUtils.success(userList);
     }
 
