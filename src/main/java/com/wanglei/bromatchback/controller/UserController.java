@@ -13,11 +13,15 @@ import com.wanglei.bromatchback.model.domain.request.UserRegisterRequest;
 import com.wanglei.bromatchback.service.UserService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.wanglei.bromatchback.constant.UserConstant.ADMIN_ROLE;
@@ -25,13 +29,18 @@ import static com.wanglei.bromatchback.constant.UserConstant.USER_LOGIN_STATE;
 
 @RestController //适用于编写restful风格的API，返回值默认为json类型
 @RequestMapping("/user")
+@Slf4j
 public class UserController {
 
     @Resource
     private UserService userService;
 
+    @Resource
+    private RedisTemplate<String, Object> redisTemplate;
+
     /**
      * 用户注册
+     *
      * @param userRegisterRequest 用户注册请求体
      */
     @PostMapping("/register")
@@ -53,6 +62,7 @@ public class UserController {
 
     /**
      * 用户登录
+     *
      * @param userLoginRequest 用户登录请求体
      */
     @PostMapping("/login")
@@ -84,10 +94,10 @@ public class UserController {
     }
 
     @GetMapping("/current")
-    public BaseResponse<User> getCurrentUser(HttpServletRequest request){
+    public BaseResponse<User> getCurrentUser(HttpServletRequest request) {
         Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
         User currentUser = (User) userObj;
-        if(currentUser == null){
+        if (currentUser == null) {
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
         Long id = currentUser.getId();
@@ -116,10 +126,9 @@ public class UserController {
 //
 //        return ResultUtils.success(list);
 //    }
-
     @GetMapping("/search/tags")
-    public BaseResponse<List<User>> searchUserTags(List<String> tags){
-        if(CollectionUtils.isEmpty(tags)){
+    public BaseResponse<List<User>> searchUserTags(List<String> tags) {
+        if (CollectionUtils.isEmpty(tags)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         List<User> userList = userService.searchUserByTags(tags);
@@ -128,23 +137,39 @@ public class UserController {
 
     /**
      * 主页推荐
+     *
      * @param pageSize 每页数据量
      * @param pageNum  当前页数
      */
     @GetMapping("/recommend")
-    public BaseResponse<Page<User>> userRecommend(long pageSize,long pageNum,HttpServletRequest request){
+    public BaseResponse<Page<User>> userRecommend(long pageSize, long pageNum, HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        //如果有缓存，直接读缓存
+        String redisKey = String.format("bromatch:recommend:%s",loginUser.getId());
+        ValueOperations<String, Object> ValueOperations = redisTemplate.opsForValue();
+        Page<User> userPage = (Page<User>)ValueOperations.get(redisKey);
+        if(userPage != null){
+            return ResultUtils.success(userPage);
+        }
+        //无缓存查数据库
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        Page<User> userList = userService.page(new Page<>(pageNum,pageSize),queryWrapper);
-        return ResultUtils.success(userList);
+        userPage = userService.page(new Page<>(pageNum, pageSize), queryWrapper);
+        //写缓存
+        try {
+            ValueOperations.set(redisKey,userPage,5, TimeUnit.MINUTES);
+        } catch (Exception e) {
+            log.error("redis set key error",e);
+        }
+        return ResultUtils.success(userPage);
     }
 
     @PostMapping("/update")
-    public BaseResponse<Integer> updateUser(@RequestBody User user,HttpServletRequest request){
-        if(user == null){
+    public BaseResponse<Integer> updateUser(@RequestBody User user, HttpServletRequest request) {
+        if (user == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         User loginUser = userService.getLoginUser(request);
-        Integer result = userService.updateUser(user,loginUser);
+        Integer result = userService.updateUser(user, loginUser);
         return ResultUtils.success(result);
     }
 
