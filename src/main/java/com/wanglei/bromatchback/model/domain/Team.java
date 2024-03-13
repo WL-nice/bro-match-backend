@@ -7,12 +7,12 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * 标签
- * @TableName tag
+ * 队伍
+ * @TableName team
  */
-@TableName(value ="tag")
+@TableName(value ="team")
 @Data
-public class Tag implements Serializable {
+public class Team implements Serializable {
     /**
      * id
      */
@@ -20,9 +20,19 @@ public class Tag implements Serializable {
     private Long id;
 
     /**
-     * 标签名
+     * 队伍名
      */
-    private String tagName;
+    private String teamName;
+
+    /**
+     * 队伍描述
+     */
+    private String description;
+
+    /**
+     * 创建时间
+     */
+    private Date expireTime;
 
     /**
      * 用户id
@@ -30,14 +40,19 @@ public class Tag implements Serializable {
     private Long userId;
 
     /**
-     * 父标签id
+     * 密码
      */
-    private Long parentId;
+    private String password;
 
     /**
-     * 0-不是父标签 1-是父标签
+     * 队伍成员最大数
      */
-    private Integer isParent;
+    private Integer maxNum;
+
+    /**
+     * 队伍状态
+     */
+    private Integer teamStatus;
 
     /**
      * 创建时间
