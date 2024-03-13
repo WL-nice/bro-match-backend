@@ -12,13 +12,13 @@ import org.springframework.context.annotation.Configuration;
  * Redisson配置
  */
 @Configuration
-@ConfigurationProperties(prefix = "spring.redis")
+@ConfigurationProperties(prefix = "spring.data.redis")
 @Data
 public class RedissonConfig {
 
-    private String host;
+    private String host  ;
 
-    private String port;
+    private String port ;
 
     @Bean
     public RedissonClient redissonClient() {
