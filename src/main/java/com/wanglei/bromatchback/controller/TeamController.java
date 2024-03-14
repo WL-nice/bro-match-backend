@@ -10,6 +10,10 @@ import com.wanglei.bromatchback.model.domain.dto.TeamQuery;
 import com.wanglei.bromatchback.exception.BusinessException;
 import com.wanglei.bromatchback.model.domain.Team;
 import com.wanglei.bromatchback.model.domain.request.TeamAddRequest;
+import com.wanglei.bromatchback.model.domain.request.TeamJoinRequest;
+import com.wanglei.bromatchback.model.domain.request.TeamUpdateRequest;
+import com.wanglei.bromatchback.model.domain.vo.TeamUserVo;
+import com.wanglei.bromatchback.model.domain.vo.UserVo;
 import com.wanglei.bromatchback.service.TeamService;
 import com.wanglei.bromatchback.service.UserService;
 import jakarta.annotation.Resource;
@@ -58,11 +62,15 @@ public class TeamController {
     }
 
     @PostMapping("/update")
-    public BaseResponse<Boolean> updateTeam(@RequestBody Team team) {
-        if (team == null) {
+    public BaseResponse<Boolean> updateTeam(@RequestBody TeamUpdateRequest teamUpdateRequest,HttpServletRequest request) {
+        if (teamUpdateRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        boolean result = teamService.updateById(team);
+        User loginUser = userService.getLoginUser(request);
+        if(loginUser == null){
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        boolean result = teamService.updateTeam(teamUpdateRequest,loginUser);
         if (!result) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "修改失败");
         }
@@ -82,14 +90,12 @@ public class TeamController {
     }
 
     @GetMapping("/list")
-    public BaseResponse<List<Team>> listTeams(@RequestBody TeamQuery teamQuery){
+    public BaseResponse<List<TeamUserVo>> listTeams(@RequestBody TeamQuery teamQuery,HttpServletRequest request){
         if(teamQuery == null){
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        Team team = new Team();
-        BeanUtils.copyProperties(teamQuery,team);
-        QueryWrapper<Team> queryWrapper = new QueryWrapper<>();
-        List<Team> list = teamService.list(queryWrapper);
+        User loginUser = userService.getLoginUser(request);
+        List<TeamUserVo> list = teamService.listTeams(teamQuery,userService.isAdmin(loginUser));
         return ResultUtils.success(list);
     }
 
@@ -105,6 +111,16 @@ public class TeamController {
         QueryWrapper<Team> queryWrapper = new QueryWrapper<>();
         Page<Team> page = teamService.page(new Page<>(pageSize, pageNum), queryWrapper);
         return ResultUtils.success(page);
+    }
+
+    @PostMapping("/join")
+    public BaseResponse<Boolean> joinTeam(@RequestBody TeamJoinRequest teamJoinRequest,HttpServletRequest request){
+        if(teamJoinRequest == null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        boolean result = teamService.joinTeam(teamJoinRequest,loginUser);
+        return ResultUtils.success(result);
     }
 
 }

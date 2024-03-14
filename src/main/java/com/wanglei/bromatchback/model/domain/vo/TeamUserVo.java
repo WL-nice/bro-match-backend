@@ -1,22 +1,23 @@
-package com.wanglei.bromatchback.model.domain;
+package com.wanglei.bromatchback.model.domain.vo;
 
-import com.baomidou.mybatisplus.annotation.*;
+
+
 import lombok.Data;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 /**
- * 队伍
- * @TableName team
+ * 队伍和用户信息封装类
  */
-@TableName(value ="team")
 @Data
-public class Team implements Serializable {
+public class TeamUserVo implements Serializable {
     /**
      * id
      */
-    @TableId(type = IdType.AUTO)
+
     private Long id;
 
     /**
@@ -30,7 +31,7 @@ public class Team implements Serializable {
     private String description;
 
     /**
-     * 过期时间
+     * 创建时间
      */
     private Date expireTime;
 
@@ -39,10 +40,6 @@ public class Team implements Serializable {
      */
     private Long userId;
 
-    /**
-     * 密码
-     */
-    private String password;
 
     /**
      * 队伍成员最大数
@@ -64,12 +61,13 @@ public class Team implements Serializable {
      */
     private Date updateTime;
 
-    /**
-     * 是否删除
-     */
-    @TableLogic
-    private Integer isDelete;
 
-    @TableField(exist = false)
     private static final long serialVersionUID = 1L;
+
+    /**
+     * 创建人信息
+     */
+    UserVo createUser;
+
+
 }

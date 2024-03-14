@@ -3,6 +3,12 @@ package com.wanglei.bromatchback.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.wanglei.bromatchback.model.domain.Team ;
 import com.wanglei.bromatchback.model.domain.User;
+import com.wanglei.bromatchback.model.domain.dto.TeamQuery;
+import com.wanglei.bromatchback.model.domain.request.TeamJoinRequest;
+import com.wanglei.bromatchback.model.domain.request.TeamUpdateRequest;
+import com.wanglei.bromatchback.model.domain.vo.TeamUserVo;
+
+import java.util.List;
 
 /**
 * @author admin
@@ -20,4 +26,26 @@ public interface TeamService extends IService<Team> {
     long addTeam(Team team, User loginUser);
 
 
+    /**
+     * 搜索队伍
+     * @param teamQuery
+     * @return
+     */
+    List<TeamUserVo> listTeams(TeamQuery teamQuery,boolean isAdmin);
+
+    /**
+     * 修改队伍信息
+     * @param teamUpdateRequest
+     * @param loginUser
+     * @return
+     */
+    boolean updateTeam(TeamUpdateRequest teamUpdateRequest,User loginUser);
+
+    /**
+     * 加入队伍
+     * @param teamJoinRequest
+     * @param loginUser
+     * @return
+     */
+    boolean joinTeam(TeamJoinRequest teamJoinRequest, User loginUser);
 }
