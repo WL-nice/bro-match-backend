@@ -2,8 +2,8 @@ package com.wanglei.bromatchback.model.domain.request;
 
 import lombok.Data;
 
-import java.io.Serializable;
 import java.util.Date;
+
 @Data
 public class TeamUpdateRequest {
 
@@ -23,7 +23,7 @@ public class TeamUpdateRequest {
     private String description;
 
     /**
-     * 创建时间
+     * 过期时间
      */
     private Date expireTime;
 

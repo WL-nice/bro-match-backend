@@ -11,8 +11,9 @@ import static com.wanglei.bromatchback.constant.UserConstant.USER_LOGIN_STATE;
 
 /**
  * 用户服务
-* @author muqiu
-*/
+ *
+ * @author muqiu
+ */
 public interface UserService extends IService<User> {
 
 
@@ -78,6 +79,7 @@ public interface UserService extends IService<User> {
      * 判断是否为管理员
      */
     boolean isAdmin(HttpServletRequest request);
+
     boolean isAdmin(User loginUser);
 }
 

@@ -123,8 +123,8 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
                 queryWrapper.eq("id", id);
             }
             List<Long> idList = teamQuery.getIdList();
-            if(!CollectionUtils.isEmpty(idList)){
-                queryWrapper.in("id",idList);
+            if (!CollectionUtils.isEmpty(idList)) {
+                queryWrapper.in("id", idList);
             }
             String teamName = teamQuery.getTeamName();
             if (StringUtils.isNotBlank(teamName)) {
@@ -206,7 +206,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
             throw new BusinessException(ErrorCode.NULL_ERROR, "队伍不存在");
         }
         //只有创建者和管理员可修改
-        if (oldTeam.getUserId() != loginUser.getId() && !userService.isAdmin(loginUser)) {
+        if (!Objects.equals(oldTeam.getUserId(), loginUser.getId()) && !userService.isAdmin(loginUser)) {
             throw new BusinessException(ErrorCode.NO_AUTH);
         }
         TeamStatus teamStatusByValue = TeamStatus.getTeamStatusByValue(teamUpdateRequest.getTeamStatus());
@@ -322,10 +322,11 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
                     throw new BusinessException(ErrorCode.SYSTEM_ERROR);
                 }
                 UserTeam nextTeamUser = userTeamList.get(1);
-                Long nextLeader = nextTeamUser.getUserId();
+                Long nextLeaderId = nextTeamUser.getUserId();
                 Team updateTeam = new Team();
+                BeanUtils.copyProperties(team, updateTeam);
                 updateTeam.setId(teamId);
-                updateTeam.setUserId(nextLeader);
+                updateTeam.setUserId(nextLeaderId);
                 boolean result = this.updateById(updateTeam);
                 if (!result) {
                     throw new BusinessException(ErrorCode.SYSTEM_ERROR, "更新队长失败");
