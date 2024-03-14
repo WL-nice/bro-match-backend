@@ -57,8 +57,8 @@ public class PreCacheJob {
 
             }
         } catch (InterruptedException e) {
-            log.error("doCache error",e);
-        }finally {
+            log.error("doCache error", e);
+        } finally {
             if (lock.isHeldByCurrentThread()) {
                 lock.unlock();
             }

@@ -6,16 +6,19 @@ import com.wanglei.bromatchback.commmon.BaseResponse;
 import com.wanglei.bromatchback.commmon.ErrorCode;
 import com.wanglei.bromatchback.commmon.ResultUtils;
 import com.wanglei.bromatchback.model.domain.User;
+import com.wanglei.bromatchback.model.domain.UserTeam;
 import com.wanglei.bromatchback.model.domain.dto.TeamQuery;
 import com.wanglei.bromatchback.exception.BusinessException;
 import com.wanglei.bromatchback.model.domain.Team;
 import com.wanglei.bromatchback.model.domain.request.TeamAddRequest;
 import com.wanglei.bromatchback.model.domain.request.TeamJoinRequest;
+import com.wanglei.bromatchback.model.domain.request.TeamQuitRequest;
 import com.wanglei.bromatchback.model.domain.request.TeamUpdateRequest;
 import com.wanglei.bromatchback.model.domain.vo.TeamUserVo;
 import com.wanglei.bromatchback.model.domain.vo.UserVo;
 import com.wanglei.bromatchback.service.TeamService;
 import com.wanglei.bromatchback.service.UserService;
+import com.wanglei.bromatchback.service.UserTeamService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,7 +26,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController //适用于编写restful风格的API，返回值默认为json类型
 @RequestMapping("/team")
@@ -36,6 +42,9 @@ public class TeamController {
     @Resource
     private TeamService teamService;
 
+    @Resource
+    private UserTeamService userTeamService;
+
     @PostMapping("/add")
     public BaseResponse<Long> addTeam(@RequestBody TeamAddRequest teamAddRequest, HttpServletRequest request) {
         if (teamAddRequest == null) {
@@ -43,18 +52,19 @@ public class TeamController {
         }
         User loginUser = userService.getLoginUser(request);
         Team team = new Team();
-        BeanUtils.copyProperties(teamAddRequest,team);
+        BeanUtils.copyProperties(teamAddRequest, team);
         long teamId = teamService.addTeam(team, loginUser);
         return ResultUtils.success(teamId);
 
     }
 
     @PostMapping("/delete")
-    public BaseResponse<Boolean> deleteTeam(@RequestParam("id") long id) {
-        if (id <= 0) {
+    public BaseResponse<Boolean> deleteTeam(@RequestParam("teamId") long teamId, HttpServletRequest request) {
+        if (teamId <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        boolean result = teamService.removeById(id);
+        User loginUser = userService.getLoginUser(request);
+        boolean result = teamService.deleteTeam(teamId, loginUser);
         if (!result) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "删除失败");
         }
@@ -62,15 +72,15 @@ public class TeamController {
     }
 
     @PostMapping("/update")
-    public BaseResponse<Boolean> updateTeam(@RequestBody TeamUpdateRequest teamUpdateRequest,HttpServletRequest request) {
+    public BaseResponse<Boolean> updateTeam(@RequestBody TeamUpdateRequest teamUpdateRequest, HttpServletRequest request) {
         if (teamUpdateRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         User loginUser = userService.getLoginUser(request);
-        if(loginUser == null){
+        if (loginUser == null) {
             throw new BusinessException(ErrorCode.NO_LOGIN);
         }
-        boolean result = teamService.updateTeam(teamUpdateRequest,loginUser);
+        boolean result = teamService.updateTeam(teamUpdateRequest, loginUser);
         if (!result) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "修改失败");
         }
@@ -90,22 +100,22 @@ public class TeamController {
     }
 
     @GetMapping("/list")
-    public BaseResponse<List<TeamUserVo>> listTeams(@RequestBody TeamQuery teamQuery,HttpServletRequest request){
-        if(teamQuery == null){
+    public BaseResponse<List<TeamUserVo>> listTeams(@RequestBody TeamQuery teamQuery, HttpServletRequest request) {
+        if (teamQuery == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         User loginUser = userService.getLoginUser(request);
-        List<TeamUserVo> list = teamService.listTeams(teamQuery,userService.isAdmin(loginUser));
+        List<TeamUserVo> list = teamService.listTeams(teamQuery, userService.isAdmin(loginUser));
         return ResultUtils.success(list);
     }
 
     @GetMapping("/list/page")
-    public BaseResponse<Page<Team>> listTeamsByPage(@RequestBody TeamQuery teamQuery){
-        if(teamQuery == null){
+    public BaseResponse<Page<Team>> listTeamsByPage(@RequestBody TeamQuery teamQuery) {
+        if (teamQuery == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         Team team = new Team();
-        BeanUtils.copyProperties(teamQuery,team);
+        BeanUtils.copyProperties(teamQuery, team);
         int pageSize = teamQuery.getPageSize();
         int pageNum = teamQuery.getPageNum();
         QueryWrapper<Team> queryWrapper = new QueryWrapper<>();
@@ -114,13 +124,64 @@ public class TeamController {
     }
 
     @PostMapping("/join")
-    public BaseResponse<Boolean> joinTeam(@RequestBody TeamJoinRequest teamJoinRequest,HttpServletRequest request){
-        if(teamJoinRequest == null){
+    public BaseResponse<Boolean> joinTeam(@RequestBody TeamJoinRequest teamJoinRequest, HttpServletRequest request) {
+        if (teamJoinRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         User loginUser = userService.getLoginUser(request);
-        boolean result = teamService.joinTeam(teamJoinRequest,loginUser);
+        boolean result = teamService.joinTeam(teamJoinRequest, loginUser);
         return ResultUtils.success(result);
     }
+
+    @PostMapping("/quit")
+    public BaseResponse<Boolean> quitTeam(@RequestBody TeamQuitRequest teamQuitRequest, HttpServletRequest request) {
+        if (teamQuitRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        boolean result = teamService.quitTeam(teamQuitRequest, loginUser);
+        return ResultUtils.success(result);
+    }
+
+    /**
+     * 获取当前用户创建的队伍
+     * @param teamQuery
+     * @param request
+     * @return
+     */
+    @GetMapping("/list/my/create")
+    public BaseResponse<List<TeamUserVo>> listMyCreateTeams(@RequestBody TeamQuery teamQuery, HttpServletRequest request) {
+        if (teamQuery == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        teamQuery.setUserId(loginUser.getId());
+        List<TeamUserVo> list = teamService.listTeams(teamQuery,true);
+        return ResultUtils.success(list);
+    }
+
+    /**
+     * 获取当前用户加入的队伍
+     * @param teamQuery
+     * @param request
+     * @return
+     */
+    @GetMapping("/list/my/join")
+    public BaseResponse<List<TeamUserVo>> listMyJoinTeams(@RequestBody TeamQuery teamQuery, HttpServletRequest request) {
+        if (teamQuery == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        QueryWrapper<UserTeam> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("userId",loginUser.getId());
+        List<UserTeam> userTeamList = userTeamService.list(queryWrapper);
+        //去除重复的队伍id
+        Map<Long, List<UserTeam>> listMap = userTeamList.stream().collect(Collectors.groupingBy(UserTeam::getTeamId));
+        ArrayList<Long> idList = new ArrayList<>(listMap.keySet());
+        teamQuery.setIdList(idList);
+        List<TeamUserVo> list = teamService.listTeams(teamQuery, true);
+        return ResultUtils.success(list);
+    }
+
 
 }

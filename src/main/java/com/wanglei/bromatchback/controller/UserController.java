@@ -146,10 +146,10 @@ public class UserController {
     public BaseResponse<Page<User>> userRecommend(long pageSize, long pageNum, HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
         //如果有缓存，直接读缓存
-        String redisKey = String.format("bromatch:recommend:%s",loginUser.getId());
+        String redisKey = String.format("bromatch:recommend:%s", loginUser.getId());
         ValueOperations<String, Object> ValueOperations = redisTemplate.opsForValue();
-        Page<User> userPage = (Page<User>)ValueOperations.get(redisKey);
-        if(userPage != null){
+        Page<User> userPage = (Page<User>) ValueOperations.get(redisKey);
+        if (userPage != null) {
             return ResultUtils.success(userPage);
         }
         //无缓存查数据库
@@ -157,9 +157,9 @@ public class UserController {
         userPage = userService.page(new Page<>(pageNum, pageSize), queryWrapper);
         //写缓存
         try {
-            ValueOperations.set(redisKey,userPage,5, TimeUnit.MINUTES);
+            ValueOperations.set(redisKey, userPage, 5, TimeUnit.MINUTES);
         } catch (Exception e) {
-            log.error("redis set key error",e);
+            log.error("redis set key error", e);
         }
         return ResultUtils.success(userPage);
     }
