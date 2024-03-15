@@ -214,7 +214,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (oldUser == null) {
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
-
+        user.setUserPassword(loginUser.getUserPassword());
         return userMapper.updateById(user);
 
     }
