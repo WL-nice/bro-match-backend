@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController //适用于编写restful风格的API，返回值默认为json类型
@@ -104,9 +105,31 @@ public class TeamController {
         if (teamQuery == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        User loginUser = userService.getLoginUser(request);
-        List<TeamUserVo> list = teamService.listTeams(teamQuery, userService.isAdmin(loginUser));
-        return ResultUtils.success(list);
+        //查询队伍列表
+        List<TeamUserVo> teamlist = teamService.listTeams(teamQuery, userService.isAdmin(request));
+        List<Long> teamIdList = teamlist.stream().map(TeamUserVo::getId).collect(Collectors.toList());
+        QueryWrapper<UserTeam> userTeamQueryWrapper = new QueryWrapper<>();
+        try{
+            User loginUser = userService.getLoginUser(request);
+            userTeamQueryWrapper.eq("userId",loginUser.getId());
+            userTeamQueryWrapper.in("teamId",teamIdList);
+            List<UserTeam> userTeamList = userTeamService.list(userTeamQueryWrapper);
+            //已加入队伍Id集合
+            Set<Long> hasJoinTeamSet = userTeamList.stream().map(UserTeam::getTeamId).collect(Collectors.toSet());
+            teamlist.forEach(team -> {
+                boolean hasJoin = hasJoinTeamSet.contains(team.getId());
+                team.setHasJoin(hasJoin);
+            });
+
+        }catch (Exception e){}
+        // 3、查询已加入队伍的人数
+        QueryWrapper<UserTeam> userTeamJoinQueryWrapper = new QueryWrapper<>();
+        userTeamJoinQueryWrapper.in("teamId", teamIdList);
+        List<UserTeam> userTeamList = userTeamService.list(userTeamJoinQueryWrapper);
+        // 队伍 id => 加入这个队伍的用户列表
+        Map<Long, List<UserTeam>> teamIdUserTeamList = userTeamList.stream().collect(Collectors.groupingBy(UserTeam::getTeamId));
+        teamlist.forEach(team -> team.setHasJoinNum(teamIdUserTeamList.getOrDefault(team.getId(), new ArrayList<>()).size()));
+        return ResultUtils.success(teamlist);
     }
 
     @GetMapping("/list/page")

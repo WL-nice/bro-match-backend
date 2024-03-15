@@ -1,7 +1,5 @@
 package com.wanglei.bromatchback.model.domain.dto;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.wanglei.bromatchback.commmon.PageRequest;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

@@ -142,11 +142,11 @@ public class UserController {
      * @param pageSize 每页数据量
      * @param pageNum  当前页数
      */
-    @GetMapping("/recommend")
-    public BaseResponse<Page<User>> userRecommend(long pageSize, long pageNum, HttpServletRequest request) {
+    @GetMapping("/search")
+    public BaseResponse<Page<User>> userSearch(long pageSize, long pageNum, HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
         //如果有缓存，直接读缓存
-        String redisKey = String.format("bromatch:recommend:%s", loginUser.getId());
+        String redisKey = String.format("bromatch:search:%s", loginUser.getId());
         ValueOperations<String, Object> ValueOperations = redisTemplate.opsForValue();
         Page<User> userPage = (Page<User>) ValueOperations.get(redisKey);
         if (userPage != null) {
@@ -189,6 +189,22 @@ public class UserController {
         boolean result = userService.removeById(id);
         return ResultUtils.success(result);
     }
+
+    /**
+     * 匹配用户
+     * @param num
+     * @param request
+     * @return
+     */
+    @GetMapping("/match")
+    public BaseResponse<List<User>> matchUsers(@RequestParam("num") long num, HttpServletRequest request) {
+        if (num <= 0 || num > 20) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User user = userService.getLoginUser(request);
+        return ResultUtils.success(userService.matchUsers(num, user));
+    }
+
 
 
 }
