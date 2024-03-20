@@ -10,6 +10,7 @@ import com.wanglei.bromatchback.exception.BusinessException;
 import com.wanglei.bromatchback.model.domain.User;
 import com.wanglei.bromatchback.model.domain.request.UserLoginRequest;
 import com.wanglei.bromatchback.model.domain.request.UserRegisterRequest;
+import com.wanglei.bromatchback.model.domain.request.UserUpdateRequest;
 import com.wanglei.bromatchback.service.UserService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -165,12 +166,12 @@ public class UserController {
     }
 
     @PostMapping("/update")
-    public BaseResponse<Integer> updateUser(@RequestBody User user, HttpServletRequest request) {
-        if (user == null) {
+    public BaseResponse<Integer> updateUser(@RequestBody UserUpdateRequest userUpdateRequest, HttpServletRequest request) {
+        if (userUpdateRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         User loginUser = userService.getLoginUser(request);
-        Integer result = userService.updateUser(user, loginUser);
+        Integer result = userService.updateUser(userUpdateRequest, loginUser);
         return ResultUtils.success(result);
     }
 

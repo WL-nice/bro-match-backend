@@ -2,6 +2,7 @@ package com.wanglei.bromatchback.service;
 
 import com.wanglei.bromatchback.model.domain.User;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.wanglei.bromatchback.model.domain.request.UserUpdateRequest;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
@@ -64,10 +65,10 @@ public interface UserService extends IService<User> {
     /**
      * 用户信息修改
      *
-     * @param user
+     * @param userUpdateRequest
      * @return
      */
-    Integer updateUser(User user, User loginUser);
+    Integer updateUser(UserUpdateRequest userUpdateRequest, User loginUser);
 
 
     /**
