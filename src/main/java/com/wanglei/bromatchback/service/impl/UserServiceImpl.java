@@ -7,6 +7,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.wanglei.bromatchback.commmon.ErrorCode;
 import com.wanglei.bromatchback.exception.BusinessException;
+import com.wanglei.bromatchback.model.domain.request.UserUpdateRequest;
 import com.wanglei.bromatchback.service.UserService;
 import com.wanglei.bromatchback.model.domain.User;
 import com.wanglei.bromatchback.mapper.UserMapper;
@@ -200,21 +201,24 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     @Override
-    public Integer updateUser(User user, User loginUser) {
-        long id = user.getId();
+    public Integer updateUser(UserUpdateRequest userUpdateRequest, User loginUser) {
+        long id = userUpdateRequest.getId();
         if (id <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         //如果为管理员，允许修改
         //如果不是，只允许修改自身的信息
-        if (!isAdmin(loginUser) && !Objects.equals(user.getId(), loginUser.getId())) {
+        if (!isAdmin(loginUser) && !Objects.equals(userUpdateRequest.getId(), loginUser.getId())) {
             throw new BusinessException(ErrorCode.NO_AUTH);
         }
         User oldUser = userMapper.selectById(id);
         if (oldUser == null) {
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
-        user.setUserPassword(loginUser.getUserPassword());
+        User user =new User();
+        if(StringUtils.isBlank(userUpdateRequest.getUserPassword())){
+            user.setUserPassword(oldUser.getUserPassword());
+        }
         return userMapper.updateById(user);
 
     }
