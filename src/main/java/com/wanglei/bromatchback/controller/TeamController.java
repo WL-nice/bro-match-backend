@@ -100,7 +100,7 @@ public class TeamController {
         return ResultUtils.success(team);
     }
 
-    @GetMapping("/list")
+    @PostMapping("/list")
     public BaseResponse<List<TeamUserVo>> listTeams(@RequestBody TeamQuery teamQuery, HttpServletRequest request) {
         if (teamQuery == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -132,7 +132,7 @@ public class TeamController {
         return ResultUtils.success(teamlist);
     }
 
-    @GetMapping("/list/page")
+    @PostMapping("/list/page")
     public BaseResponse<Page<Team>> listTeamsByPage(@RequestBody TeamQuery teamQuery) {
         if (teamQuery == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -172,7 +172,7 @@ public class TeamController {
      * @param request
      * @return
      */
-    @GetMapping("/list/my/create")
+    @PostMapping("/list/my/create")
     public BaseResponse<List<TeamUserVo>> listMyCreateTeams(@RequestBody TeamQuery teamQuery, HttpServletRequest request) {
         if (teamQuery == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -189,7 +189,7 @@ public class TeamController {
      * @param request
      * @return
      */
-    @GetMapping("/list/my/join")
+    @PostMapping("/list/my/join")
     public BaseResponse<List<TeamUserVo>> listMyJoinTeams(@RequestBody TeamQuery teamQuery, HttpServletRequest request) {
         if (teamQuery == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
