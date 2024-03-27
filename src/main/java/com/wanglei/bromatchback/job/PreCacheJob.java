@@ -2,7 +2,6 @@ package com.wanglei.bromatchback.job;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.wanglei.bromatchback.mapper.UserMapper;
 import com.wanglei.bromatchback.model.domain.User;
 import com.wanglei.bromatchback.service.UserService;
 import jakarta.annotation.Resource;
@@ -14,7 +13,6 @@ import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -48,7 +46,7 @@ public class PreCacheJob {
                     Page<User> userPage = userService.page(new Page<>(1, 20), queryWrapper);
                     //写缓存
                     try {
-                        ValueOperations.set(redisKey, userPage, 5, TimeUnit.MINUTES);
+                        ValueOperations.set(redisKey, userPage, 5, TimeUnit.HOURS);
                     } catch (Exception e) {
                         log.error("redis set key error", e);
 
