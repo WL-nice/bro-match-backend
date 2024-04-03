@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 
 @RestController //适用于编写restful风格的API，返回值默认为json类型
 @RequestMapping("/team")
-@CrossOrigin(origins = {"http://localhost:3000"})
+@CrossOrigin
 @Slf4j
 public class TeamController {
 
@@ -100,7 +100,7 @@ public class TeamController {
         return ResultUtils.success(team);
     }
 
-    @PostMapping("/list")
+    @GetMapping("/list")
     public BaseResponse<List<TeamUserVo>> listTeams(@RequestBody TeamQuery teamQuery, HttpServletRequest request) {
         if (teamQuery == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -132,7 +132,7 @@ public class TeamController {
         return ResultUtils.success(teamlist);
     }
 
-    @PostMapping("/list/page")
+    @GetMapping("/list/page")
     public BaseResponse<Page<Team>> listTeamsByPage(@RequestBody TeamQuery teamQuery) {
         if (teamQuery == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);

@@ -30,6 +30,7 @@ import static com.wanglei.bromatchback.constant.UserConstant.USER_LOGIN_STATE;
 
 @RestController //适用于编写restful风格的API，返回值默认为json类型
 @RequestMapping("/user")
+@CrossOrigin
 @Slf4j
 public class UserController {
 
