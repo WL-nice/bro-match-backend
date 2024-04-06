@@ -48,7 +48,7 @@ class UserServiceTest {
         String userPasward = "12345678";
         String checkPassword = "12345678";
         String acptCode = "1212";
-        long result = userservice.UserRegister(userAccount, userPasward, checkPassword,acptCode);
+        long result = userservice.UserRegister(userAccount, userPasward, checkPassword);
         //Assertions.assertEquals(-1, result);
 
 //        userPasward = "12345678";

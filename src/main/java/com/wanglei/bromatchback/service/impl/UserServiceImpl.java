@@ -49,9 +49,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
 
     @Override
-    public long UserRegister(String userAccount, String userPassword, String checkPassword, String acptCode) {
+    public long UserRegister(String userAccount, String userPassword, String checkPassword) {
         //1、校验
-        if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword, acptCode)) {
+        if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword)) {
 
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数为空");
         }
@@ -80,12 +80,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
 
         //校验编号不能重复
-        queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("acptCode", acptCode);
-        count = userMapper.selectCount(queryWrapper);
-        if (count > 0) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "编号重复");
-        }
+//        queryWrapper = new QueryWrapper<>();
+//        queryWrapper.eq("acptCode", acptCode);
+//        count = userMapper.selectCount(queryWrapper);
+//        if (count > 0) {
+//            throw new BusinessException(ErrorCode.PARAMS_ERROR, "编号重复");
+//        }
 
         //2、加密
         String entryptfPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
@@ -94,7 +94,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         User user = new User();
         user.setUserAccount(userAccount);
         user.setUserPassword(entryptfPassword);
-        user.setAcptCode(acptCode);
+//        user.setAcptCode(acptCode);
         boolean saveResult = this.save(user);
         if (!saveResult) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);

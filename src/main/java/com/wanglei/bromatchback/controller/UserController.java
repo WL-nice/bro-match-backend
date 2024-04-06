@@ -30,7 +30,7 @@ import static com.wanglei.bromatchback.constant.UserConstant.USER_LOGIN_STATE;
 
 @RestController //适用于编写restful风格的API，返回值默认为json类型
 @RequestMapping("/user")
-@CrossOrigin
+@CrossOrigin(origins = "http://localhost:8080",allowCredentials = "true")
 @Slf4j
 public class UserController {
 
@@ -54,10 +54,10 @@ public class UserController {
         String userPassword = userRegisterRequest.getUserPassword();
         String checkPassword = userRegisterRequest.getCheckPassword();
         String acptCode = userRegisterRequest.getAcptCode();
-        if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword, acptCode)) {
-            return null;
+        if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        long result = userService.UserRegister(userAccount, userPassword, checkPassword, acptCode);
+        long result = userService.UserRegister(userAccount, userPassword, checkPassword);
         return ResultUtils.success(result);
 
     }
