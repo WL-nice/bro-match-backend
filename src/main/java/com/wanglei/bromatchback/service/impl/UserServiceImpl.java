@@ -1,6 +1,7 @@
 package com.wanglei.bromatchback.service.impl;
 
 
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.gson.Gson;
@@ -215,9 +216,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (oldUser == null) {
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
-        User user =new User();
-        if(StringUtils.isBlank(userUpdateRequest.getUserPassword())){
-            user.setUserPassword(oldUser.getUserPassword());
+        User user = new User();
+        BeanUtils.copyProperties(userUpdateRequest,user);
+        List<String> tags = userUpdateRequest.getTags();
+        if(tags!=null){
+            user.setTags(JSONUtil.toJsonStr(tags));
         }
         return userMapper.updateById(user);
 
